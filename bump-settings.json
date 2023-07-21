@@ -1,0 +1,6 @@
+{
+    "contracts": ["CBFKJ2F7U4S6OOILIERHXNCZVCBUT7QNXSWHSU5U7FYOCAV7NETKEYIK", "CCJKF5BKXBAF4OWVUUN2SI7AT7CGUITILFF4SP6WY6OUI4E5IIDEQRWU"],
+    "min_ledgers_to_live": 200000,
+    "rpc_url": "https://rpc-futurenet.stellar.org:443/",
+    "network": "Test SDF Future Network ; October 2022"
+}

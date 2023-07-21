@@ -1,0 +1,23 @@
+[package]
+name = "bump-script"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies.soroban-env-host]
+version = "0.0.17"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "400d806387140553e4e685d232deb3a807ec0e36"
+
+[dependencies]
+soroban-cli= { git = "https://github.com/stellar/soroban-tools/", rev="b5e8586344ab52c0a1b8988b44b0c4e516a473ce"}
+stellar-strkey = "0.0.7"
+stellar-xdr = { version = "0.0.17", features = ["next"] }
+serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
+clap = "4.3.10"
+ed25519-dalek = "1.0.1"
+tokio = { version = "1", features = ["full"] }
+
