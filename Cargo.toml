@@ -12,7 +12,7 @@ git = "https://github.com/stellar/rs-soroban-env"
 rev = "400d806387140553e4e685d232deb3a807ec0e36"
 
 [dependencies]
-soroban-cli= { git = "https://github.com/stellar/soroban-tools/", rev="b5e8586344ab52c0a1b8988b44b0c4e516a473ce"}
+soroban-cli= { git = "https://github.com/stellar/soroban-tools/", rev="76cacc7cf885bd7d37756735fab332351d893406"}
 stellar-strkey = "0.0.7"
 stellar-xdr = { version = "0.0.17", features = ["next"] }
 serde = { version = "1.0.104", features = ["derive"] }

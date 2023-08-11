@@ -1,17 +1,36 @@
 use std::fs;
 
 use ed25519_dalek::PublicKey;
-use rpc::{bump_contract_instance_tx, get_client};
+use rpc::{bump_contract_instance_tx, get_client, restore_contract_instance_tx};
 use serde::{Serialize, Deserialize};
 
 use clap::Parser;
 use stellar_strkey::ed25519::PrivateKey;
 
+#[derive(Debug, Clone)]
+enum Action {
+    Bump,
+    Restore
+}
+
+impl From<String> for Action {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "Bump" => Action::Bump,
+            "Restore" => Action::Restore,
+            _ => panic!("Invalid action string"),
+        }
+    }
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-     #[arg(short, long)]
+    #[arg(short, long)]
     secret: String,
+
+    #[arg(short, long)]
+    action: Action
 }
 
 mod rpc;
@@ -52,17 +71,36 @@ async fn main() {
         contracts.push(bytes);
     }
     
-    let tx = bump_contract_instance_tx(public.to_bytes(), contracts, account.seq_num.0, parsed.min_ledgers_to_live);
+    match args.action {
+        Action::Bump => {
+            let tx = bump_contract_instance_tx(public.to_bytes(), contracts, account.seq_num.0, parsed.min_ledgers_to_live);
+
+            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
+
+            if let Ok(response) = response {
+                let (result, meta, events) = response;
+                println!("Bump was successful");
+
+                // TODO: probably do more with response info in terms of logging.
+            } else {
+                println!("Error when submitting tx {:?}", response)
+            }
+        }
+
+        Action::Restore => {
+            let tx = restore_contract_instance_tx(public.to_bytes(), contracts, account.seq_num.0);
     
-    let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
+            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
 
-    if let Ok(response) = response {
-        let (result, meta, events) = response;
-        println!("Bump was successful");
+            if let Ok(response) = response {
+                let (result, meta, events) = response;
+                println!("Restore was successful");
 
-        // TODO: probably do more with response info in terms of logging.
-    } else {
-        println!("Error when submitting tx {:?}", response)
+                // TODO: probably do more with response info in terms of logging.
+            } else {
+                println!("Error when submitting tx {:?}", response)
+            }
+        }
     }
 
 }

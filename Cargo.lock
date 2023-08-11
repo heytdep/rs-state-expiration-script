@@ -1952,8 +1952,8 @@ dependencies = [
 
 [[package]]
 name = "soroban-cli"
-version = "0.9.1"
-source = "git+https://github.com/stellar/soroban-tools/?rev=b5e8586344ab52c0a1b8988b44b0c4e516a473ce#b5e8586344ab52c0a1b8988b44b0c4e516a473ce"
+version = "0.9.4"
+source = "git+https://github.com/stellar/soroban-tools/?rev=76cacc7cf885bd7d37756735fab332351d893406#76cacc7cf885bd7d37756735fab332351d893406"
 dependencies = [
  "base64 0.13.1",
  "cargo_metadata",
@@ -2141,8 +2141,8 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec-json"
-version = "0.9.1"
-source = "git+https://github.com/stellar/soroban-tools/?rev=b5e8586344ab52c0a1b8988b44b0c4e516a473ce#b5e8586344ab52c0a1b8988b44b0c4e516a473ce"
+version = "0.9.4"
+source = "git+https://github.com/stellar/soroban-tools/?rev=76cacc7cf885bd7d37756735fab332351d893406#76cacc7cf885bd7d37756735fab332351d893406"
 dependencies = [
  "serde",
  "serde_derive",
@@ -2170,8 +2170,8 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec-tools"
-version = "0.9.1"
-source = "git+https://github.com/stellar/soroban-tools/?rev=b5e8586344ab52c0a1b8988b44b0c4e516a473ce#b5e8586344ab52c0a1b8988b44b0c4e516a473ce"
+version = "0.9.4"
+source = "git+https://github.com/stellar/soroban-tools/?rev=76cacc7cf885bd7d37756735fab332351d893406#76cacc7cf885bd7d37756735fab332351d893406"
 dependencies = [
  "base64 0.13.1",
  "ethnum",
@@ -2187,8 +2187,8 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec-typescript"
-version = "0.9.1"
-source = "git+https://github.com/stellar/soroban-tools/?rev=b5e8586344ab52c0a1b8988b44b0c4e516a473ce#b5e8586344ab52c0a1b8988b44b0c4e516a473ce"
+version = "0.9.4"
+source = "git+https://github.com/stellar/soroban-tools/?rev=76cacc7cf885bd7d37756735fab332351d893406#76cacc7cf885bd7d37756735fab332351d893406"
 dependencies = [
  "base64 0.13.1",
  "heck",
