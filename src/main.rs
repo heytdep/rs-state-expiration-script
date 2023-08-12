@@ -95,6 +95,7 @@ async fn main() {
             if let Ok(response) = response {
                 let (result, meta, events) = response;
                 println!("Restore was successful");
+                print!("{}", serde_json::to_string_pretty(&result).unwrap())
 
                 // TODO: probably do more with response info in terms of logging.
             } else {
