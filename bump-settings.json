@@ -12,6 +12,7 @@
         "CCSLU7MSBSTHMBP5ICPHNSRX3V6BWH3XBTYAJQDGUS2IKJCEYZESAPHD",
         "CCRWLEKLROZQD4L6WLZLOUEZHPLL7F4MU7NPAHEAW5Z7HTS6HGHSWEII"
     ],
+    "hashes": ["cc7fd3895985dd897f3dd7d7674378bcb20f4922983a6fb1e126e29c342c92fe"],
     "min_ledgers_to_live": 200000,
     "rpc_url": "https://rpc-futurenet.stellar.org:443/",
     "network": "Test SDF Future Network ; October 2022"

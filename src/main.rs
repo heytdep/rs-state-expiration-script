@@ -1,7 +1,7 @@
 use std::fs;
 
 use ed25519_dalek::PublicKey;
-use rpc::{bump_contract_instance_tx, get_client, restore_contract_instance_tx};
+use rpc::{get_client, restore_contract_instance_tx, bump_tx};
 use serde::{Serialize, Deserialize};
 
 use clap::Parser;
@@ -13,12 +13,38 @@ enum Action {
     Restore
 }
 
+#[derive(Debug, Clone)]
+pub enum Target {
+    Instance,
+    Code,
+}
+
+/*
+LedgerKey::ContractCode(LedgerKeyContractCode {
+                hash: Hash(
+                    utils::contract_id_from_str(wasm_hash)
+                        .map_err(|e| Error::CannotParseContractId(wasm_hash.clone(), e))?,
+                ),
+                body_type: ContractEntryBodyType::DataEntry,
+            })
+*/
+
 impl From<String> for Action {
     fn from(value: String) -> Self {
         match value.as_str() {
             "Bump" => Action::Bump,
             "Restore" => Action::Restore,
             _ => panic!("Invalid action string"),
+        }
+    }
+}
+
+impl From<String> for Target {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "Instance" => Target::Instance,
+            "Code" => Target::Code,
+            _ => panic!("Invalid target string"),
         }
     }
 }
@@ -30,14 +56,19 @@ struct Args {
     secret: String,
 
     #[arg(short, long)]
-    action: Action
+    action: Action,
+
+    #[arg(short, long)]
+    target: Target,
+    
 }
 
 mod rpc;
 
 #[derive(Serialize, Deserialize)]
 struct BumpSettings<'a> {
-    contracts: Vec<String>,
+    contracts: Option<Vec<String>>,
+    hashes: Option<Vec<String>>,
     min_ledgers_to_live: u32,
     rpc_url: &'a str,
     network: &'a str,
@@ -63,17 +94,10 @@ async fn main() {
     
     let public_strkey = stellar_strkey::ed25519::PublicKey(public.to_bytes()).to_string();
     let account = rpc_client.get_account(&public_strkey).await.unwrap(); // TODO: error handling
-
-    let mut contracts = Vec::new();
-
-    for contract in parsed.contracts {
-        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
-        contracts.push(bytes);
-    }
     
     match args.action {
         Action::Bump => {
-            let tx = bump_contract_instance_tx(public.to_bytes(), contracts, account.seq_num.0, parsed.min_ledgers_to_live);
+            let tx = bump_tx(args.target, public.to_bytes(), parsed.contracts, parsed.hashes, account.seq_num.0, parsed.min_ledgers_to_live).await;
 
             let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
 
@@ -88,7 +112,7 @@ async fn main() {
         }
 
         Action::Restore => {
-            let tx = restore_contract_instance_tx(public.to_bytes(), contracts, account.seq_num.0);
+            let tx = restore_contract_instance_tx(args.target, public.to_bytes(), parsed.contracts, parsed.hashes, account.seq_num.0).await;
     
             let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
 
