@@ -45,85 +45,8 @@ fn build_bump_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>, m
 /// Builds a bump operation for every contract instance in a single transaction
 pub async fn bump_tx(target: Target, public: [u8; 32], contracts: Option<Vec<String>>, wasms: Option<Vec<String>>, sequence: i64, min_ledgers_to_live: u32) -> Transaction {
     let parsed_keys = match target {
-        Target::Instance => {
-            let mut contract_ids = Vec::new();
-            for contract in contracts.unwrap() {
-                let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
-                contract_ids.push(bytes);
-            }
-            let key = ScVal::LedgerKeyContractInstance;
-            let mut parsed_keys = Vec::new();
-
-            for contract in contract_ids {
-                let parsed_key = LedgerKey::ContractData(LedgerKeyContractData {
-                    contract: ScAddress::Contract(Hash(contract)),
-                    durability: ContractDataDurability::Persistent,
-                    body_type: ContractEntryBodyType::DataEntry,
-                    key: key.clone()
-                });
-
-                parsed_keys.push(parsed_key);
-            }
-
-            parsed_keys
-        }
-
-        // TODO: if we keep option to put in hashes directly there should be
-        // an arg that specifies it so that we can execute safely.
-
-        // TODO: split the code below in two fns.
-
-        Target::Code => {
-            let mut contract_hashes = Vec::new();
-            
-            if let Some(contracts) = contracts {
-                let mut contract_ids = Vec::new();
-                for contract in contracts {
-                    let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
-                    contract_ids.push(bytes);
-                }
-
-                for contract in contract_ids {
-                    let instance = get_contract_wasm_hash(contract).await.unwrap();
-                    contract_hashes.push(instance)
-                }
-            }
-            /*if let Some(hashes) = wasms {
-                for hex_hash in hashes {
-                    let bytes_result = Vec::<u8>::from_hex(hex_hash);
-
-                    let hash = match bytes_result {
-                        Ok(bytes) => {
-                            if bytes.len() == 32 {
-                                let mut hash_array: [u8; 32] = [0; 32];
-                                hash_array.copy_from_slice(&bytes);
-
-                                hash_array
-                            } else {
-                                panic!("Hex string doesn't represent a 32-byte hash");
-                            }
-                        }
-                        Err(_) => {
-                            panic!("Invalid hex string");
-                        }
-                    };
-                    contract_hashes.push(hash.into());
-                }
-            }*/
-
-            let mut parsed_keys = Vec::new();
-        
-            for contract in contract_hashes {
-                let parsed_key = LedgerKey::ContractCode(LedgerKeyContractCode {
-                    hash: Hash(contract),
-                    body_type: ContractEntryBodyType::DataEntry
-                });
-        
-                parsed_keys.push(parsed_key);
-            }
-
-            parsed_keys
-        }
+        Target::Instance => build_instance_parsed_keys(contracts).await,
+        Target::Code => build_code_parsed_keys(contracts, wasms).await
     };
 
     build_bump_tx(public, sequence, parsed_keys, min_ledgers_to_live)
@@ -166,80 +89,8 @@ fn build_restore_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>
 
 pub async fn restore_contract_instance_tx(target: Target, public: [u8; 32], contracts: Option<Vec<String>>, wasms: Option<Vec<String>>, sequence: i64) -> Transaction {
     let parsed_keys = match target {
-        Target::Instance => {
-            let mut contract_ids = Vec::new();
-            for contract in contracts.unwrap() {
-                let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
-                contract_ids.push(bytes);
-            }
-            let key = ScVal::LedgerKeyContractInstance;
-            let mut parsed_keys = Vec::new();
-
-            for contract in contract_ids {
-                let parsed_key = LedgerKey::ContractData(LedgerKeyContractData {
-                    contract: ScAddress::Contract(Hash(contract)),
-                    durability: ContractDataDurability::Persistent,
-                    body_type: ContractEntryBodyType::DataEntry,
-                    key: key.clone()
-                });
-
-                parsed_keys.push(parsed_key);
-            }
-
-            parsed_keys
-        }
-
-        Target::Code => {
-            let mut contract_hashes = Vec::new();
-            
-            if let Some(contracts) = contracts {
-                let mut contract_ids = Vec::new();
-                for contract in contracts {
-                    let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
-                    contract_ids.push(bytes);
-                }
-
-                for contract in contract_ids {
-                    let instance = get_contract_wasm_hash(contract).await.unwrap();
-                    contract_hashes.push(instance)
-                }
-            }
-            /*if let Some(hashes) = wasms {
-                for hex_hash in hashes {
-                    let bytes_result = Vec::<u8>::from_hex(hex_hash);
-
-                    let hash = match bytes_result {
-                        Ok(bytes) => {
-                            if bytes.len() == 32 {
-                                let mut hash_array: [u8; 32] = [0; 32];
-                                hash_array.copy_from_slice(&bytes);
-
-                                hash_array
-                            } else {
-                                panic!("Hex string doesn't represent a 32-byte hash");
-                            }
-                        }
-                        Err(_) => {
-                            panic!("Invalid hex string");
-                        }
-                    };
-                    contract_hashes.push(hash.into());
-                }
-            }*/
-
-            let mut parsed_keys = Vec::new();
-        
-            for contract in contract_hashes {
-                let parsed_key = LedgerKey::ContractCode(LedgerKeyContractCode {
-                    hash: Hash(contract),
-                    body_type: ContractEntryBodyType::DataEntry
-                });
-        
-                parsed_keys.push(parsed_key);
-            }
-
-            parsed_keys
-        }
+        Target::Instance => build_instance_parsed_keys(contracts).await,
+        Target::Code => build_code_parsed_keys(contracts, wasms).await
     };
 
     build_restore_tx(public, sequence, parsed_keys)
@@ -258,7 +109,7 @@ async fn get_contract_wasm_hash(contract_id: [u8; 32]) -> Result<[u8; 32], reqwe
         durability: ContractDataDurability::Persistent,
         body_type: ContractEntryBodyType::DataEntry,
         key: ScVal::LedgerKeyContractInstance,
-    }).to_xdr_base64().unwrap(); // Replace with actual XDR handling
+    }).to_xdr_base64().unwrap();
 
     let params = json!([
         key_xdr
@@ -299,13 +150,90 @@ async fn get_contract_wasm_hash(contract_id: [u8; 32]) -> Result<[u8; 32], reqwe
                         }
                     }
 
-                    _ => panic!("ontractdata")
+                    _ => panic!()
                 }
             }
 
-            _ => panic!("contraccode")
+            _ => panic!()
         }
     } else {
-        panic!("error in request")
+        panic!()
     }
+}
+
+
+async fn build_code_parsed_keys(contracts: Option<Vec<String>>, wasms: Option<Vec<String>>) -> Vec<LedgerKey> {
+    let mut contract_hashes = Vec::new();
+            
+    if let Some(contracts) = contracts {
+        let mut contract_ids = Vec::new();
+        for contract in contracts {
+            let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
+            contract_ids.push(bytes);
+        }
+
+        for contract in contract_ids {
+            let instance = get_contract_wasm_hash(contract).await.unwrap();
+            contract_hashes.push(instance)
+        }
+    }
+
+    if let Some(hashes) = wasms {
+        for hex_hash in hashes {
+            let bytes_result = Vec::<u8>::from_hex(hex_hash);
+
+            let hash = match bytes_result {
+                Ok(bytes) => {
+                    if bytes.len() == 32 {
+                        let mut hash_array: [u8; 32] = [0; 32];
+                        hash_array.copy_from_slice(&bytes);
+
+                        hash_array
+                    } else {
+                        panic!("Hex string doesn't represent a 32-byte hash");
+                    }
+                }
+                Err(_) => {
+                    panic!("Invalid hex string");
+                }
+            };
+            contract_hashes.push(hash.into());
+        }
+    }
+
+    let mut parsed_keys = Vec::new();
+
+    for contract in contract_hashes {
+        let parsed_key = LedgerKey::ContractCode(LedgerKeyContractCode {
+            hash: Hash(contract),
+            body_type: ContractEntryBodyType::DataEntry
+        });
+
+        parsed_keys.push(parsed_key);
+    }
+
+    parsed_keys
+}
+
+async fn build_instance_parsed_keys(contracts: Option<Vec<String>>) -> Vec<LedgerKey> {
+    let mut contract_ids = Vec::new();
+    for contract in contracts.unwrap() {
+        let bytes = stellar_strkey::Contract::from_string(&contract).unwrap().0;
+        contract_ids.push(bytes);
+    }
+    let key = ScVal::LedgerKeyContractInstance;
+    let mut parsed_keys = Vec::new();
+
+    for contract in contract_ids {
+        let parsed_key = LedgerKey::ContractData(LedgerKeyContractData {
+            contract: ScAddress::Contract(Hash(contract)),
+            durability: ContractDataDurability::Persistent,
+            body_type: ContractEntryBodyType::DataEntry,
+            key: key.clone()
+        });
+
+        parsed_keys.push(parsed_key);
+    }
+
+    parsed_keys
 }
