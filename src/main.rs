@@ -19,15 +19,6 @@ pub enum Target {
     Code,
 }
 
-/*
-LedgerKey::ContractCode(LedgerKeyContractCode {
-                hash: Hash(
-                    utils::contract_id_from_str(wasm_hash)
-                        .map_err(|e| Error::CannotParseContractId(wasm_hash.clone(), e))?,
-                ),
-                body_type: ContractEntryBodyType::DataEntry,
-            })
-*/
 
 impl From<String> for Action {
     fn from(value: String) -> Self {
@@ -104,6 +95,7 @@ async fn main() {
             if let Ok(response) = response {
                 let (result, meta, events) = response;
                 println!("Bump was successful");
+                print!("{}", serde_json::to_string_pretty(&result).unwrap())
 
                 // TODO: probably do more with response info in terms of logging.
             } else {

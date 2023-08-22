@@ -8,8 +8,6 @@ use crate::Target;
 const DEFAULT_FEE: u32 = 100;
 
 fn build_bump_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>, min_ledgers_to_live: u32) -> Transaction {
-    // let source = stellar_strkey::ed25519::PublicKey(public);
-
     Transaction {
         source_account: MuxedAccount::Ed25519(Uint256(public)),
         fee: DEFAULT_FEE,
@@ -53,8 +51,6 @@ pub async fn bump_tx(target: Target, public: [u8; 32], contracts: Option<Vec<Str
 }
 
 fn build_restore_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>) -> Transaction {
-    // let source = stellar_strkey::ed25519::PublicKey(public);
-
     let tx = Transaction {
         source_account: MuxedAccount::Ed25519(Uint256(public)),
         fee: DEFAULT_FEE,
