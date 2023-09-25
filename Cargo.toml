@@ -7,18 +7,22 @@ edition = "2021"
 
 
 [dependencies.soroban-env-host]
-version = "0.0.17"
+version = "20.0.0-rc2"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "400d806387140553e4e685d232deb3a807ec0e36"
+rev = "8c63bff68a15d79aca3a705ee6916a68db57b7e6"
+
+[dependencies.stellar-xdr]
+version = "20.0.0-rc1"
+git = "https://github.com/stellar/rs-stellar-xdr"
+rev = "d5ce0c9e7aa83461773a6e81662067f35d39e4c1"
 
 [dependencies]
-soroban-cli= { git = "https://github.com/stellar/soroban-tools/", rev="76cacc7cf885bd7d37756735fab332351d893406"}
+soroban-cli= { git = "https://github.com/stellar/soroban-tools/", version="20.0.0-rc2"}
 stellar-strkey = "0.0.7"
-stellar-xdr = { version = "0.0.17", features = ["next"] }
 serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0.48"
 clap = "4.3.10"
-ed25519-dalek = "1.0.1"
+ed25519-dalek = "2.0.0"
 tokio = { version = "1", features = ["full"] }
 hex = "0.4.3"
 reqwest = {version="0.11.18", features=["json"]}

@@ -1,6 +1,5 @@
 use std::fs;
-
-use ed25519_dalek::PublicKey;
+use soroban_env_host::xdr::WriteXdr;
 use rpc::{get_client, restore_contract_instance_tx, bump_tx};
 use serde::{Serialize, Deserialize};
 
@@ -75,22 +74,27 @@ async fn main() {
 
     let file = fs::read_to_string("./bump-settings.json").expect("failed to read bump-settings.json");
     let parsed: BumpSettings = serde_json::from_str(&file).unwrap();
-
-    let secret = ed25519_dalek::SecretKey::from_bytes(&PrivateKey::from_string(&args.secret).unwrap().0).unwrap(); // TODO: error handling
-    let public: PublicKey = (&secret).into();
     
-    let keypair = ed25519_dalek::Keypair { secret, public };
+    let private = PrivateKey::from_string(&args.secret).unwrap();    
+    let keypair = ed25519_dalek::SigningKey::from_bytes(&private.0);
+
+    let public = {
+        let verifiying = keypair.verifying_key();
+        verifiying.as_bytes().clone()
+    };
 
     let rpc_client = get_client(parsed.rpc_url);
     
-    let public_strkey = stellar_strkey::ed25519::PublicKey(public.to_bytes()).to_string();
+    let public_strkey = stellar_strkey::ed25519::PublicKey(public).to_string();
     let account = rpc_client.get_account(&public_strkey).await.unwrap(); // TODO: error handling
     
     match args.action {
         Action::Bump => {
-            let tx = bump_tx(args.target, public.to_bytes(), parsed.contracts, parsed.hashes, account.seq_num.0, parsed.min_ledgers_to_live).await;
+            let tx = bump_tx(args.target, public, parsed.contracts, parsed.hashes, account.seq_num.0, parsed.min_ledgers_to_live).await;
 
-            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
+	    println!("tx: {}", tx.to_xdr_base64().unwrap());
+
+            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, &[], parsed.network, None, None).await;
 
             if let Ok(response) = response {
                 let (result, meta, events) = response;
@@ -104,9 +108,9 @@ async fn main() {
         }
 
         Action::Restore => {
-            let tx = restore_contract_instance_tx(args.target, public.to_bytes(), parsed.contracts, parsed.hashes, account.seq_num.0).await;
+            let tx = restore_contract_instance_tx(args.target, public, parsed.contracts, parsed.hashes, account.seq_num.0).await;
     
-            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, parsed.network, None).await;
+            let response = rpc_client.prepare_and_send_transaction(&tx, &keypair, &[], parsed.network, None, None).await;
 
             if let Ok(response) = response {
                 let (result, meta, events) = response;

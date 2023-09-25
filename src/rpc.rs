@@ -1,6 +1,6 @@
 use hex::FromHex;
 use soroban_cli::rpc::Client;
-use soroban_env_host::xdr::{Transaction, MuxedAccount, Uint256, SequenceNumber, Preconditions, Memo, Operation, OperationBody, BumpFootprintExpirationOp, ExtensionPoint, TransactionExt, SorobanTransactionData, SorobanResources, LedgerFootprint, LedgerKey, LedgerKeyContractData, ScAddress, Hash, ContractEntryBodyType, ContractDataDurability, ScVal, RestoreFootprintOp, LedgerKeyContractCode, WriteXdr, LedgerEntry, ReadXdr, LedgerEntryData, ContractDataEntry, ContractCodeEntryBody, VecM, BytesM, ContractDataEntryBody, ContractExecutable};
+use soroban_env_host::xdr::{Transaction, MuxedAccount, Uint256, SequenceNumber, Preconditions, Memo, Operation, OperationBody, BumpFootprintExpirationOp, ExtensionPoint, TransactionExt, SorobanTransactionData, SorobanResources, LedgerFootprint, LedgerKey, LedgerKeyContractData, ScAddress, Hash, ContractDataDurability, ScVal, RestoreFootprintOp, LedgerKeyContractCode, WriteXdr, ReadXdr, LedgerEntryData, ContractExecutable};
 use serde_json::json;
 
 use crate::Target;
@@ -33,7 +33,6 @@ fn build_bump_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>, m
                 instructions: 0,
                 read_bytes: 0,
                 write_bytes: 0,
-                extended_meta_data_size_bytes: 0,
             },
             refundable_fee: 0,
         }),
@@ -74,7 +73,6 @@ fn build_restore_tx(public: [u8; 32], sequence: i64, parsed_keys: Vec<LedgerKey>
                 instructions: 0,
                 read_bytes: 0,
                 write_bytes: 0,
-                extended_meta_data_size_bytes: 0,
             },
             refundable_fee: 0,
         }),
@@ -103,7 +101,6 @@ async fn get_contract_wasm_hash(contract_id: [u8; 32]) -> Result<[u8; 32], reqwe
     let key_xdr = LedgerKey::ContractData(LedgerKeyContractData { 
         contract: ScAddress::Contract(Hash(contract_id)),
         durability: ContractDataDurability::Persistent,
-        body_type: ContractEntryBodyType::DataEntry,
         key: ScVal::LedgerKeyContractInstance,
     }).to_xdr_base64().unwrap();
 
@@ -128,24 +125,14 @@ async fn get_contract_wasm_hash(contract_id: [u8; 32]) -> Result<[u8; 32], reqwe
         let ledger_entry_data = LedgerEntryData::from_xdr_base64(xdr);
         
         match ledger_entry_data.unwrap() {
-
             LedgerEntryData::ContractData(data) => {
-                match data.body {
-                    ContractDataEntryBody::DataEntry(data) => {
-                        match data.val {
-                            ScVal::ContractInstance(instance) => {
-                                match instance.executable {
-                                    ContractExecutable::Wasm(hash) => {
-                                        Ok(hash.0)
-                                    },
-
-                                    _ => panic!()
-                                }
-                            },
+                match data.val {
+                    ScVal::ContractInstance(instance) => {
+                        match instance.executable {
+                            ContractExecutable::Wasm(hash) => Ok(hash.0),
                             _ => panic!()
                         }
-                    }
-
+                    },
                     _ => panic!()
                 }
             }
@@ -202,7 +189,6 @@ async fn build_code_parsed_keys(contracts: Option<Vec<String>>, wasms: Option<Ve
     for contract in contract_hashes {
         let parsed_key = LedgerKey::ContractCode(LedgerKeyContractCode {
             hash: Hash(contract),
-            body_type: ContractEntryBodyType::DataEntry
         });
 
         parsed_keys.push(parsed_key);
@@ -224,7 +210,6 @@ async fn build_instance_parsed_keys(contracts: Option<Vec<String>>) -> Vec<Ledge
         let parsed_key = LedgerKey::ContractData(LedgerKeyContractData {
             contract: ScAddress::Contract(Hash(contract)),
             durability: ContractDataDurability::Persistent,
-            body_type: ContractEntryBodyType::DataEntry,
             key: key.clone()
         });
 
